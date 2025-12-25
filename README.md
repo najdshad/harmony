@@ -96,4 +96,4 @@ The app follows MVVM pattern with:
 
 ## License
 
-[Add your license here]
+This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE) for the full text.
