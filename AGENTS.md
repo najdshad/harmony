@@ -77,12 +77,15 @@ When running commands that require network access (gradle sync, dependency downl
 - **Target SDK**: 36 (Android 16)
 - **Min SDK**: 33 (Android 13)
 - **Compose BOM**: 2024.10.01
-- **Compose Compiler**: 1.5.8
+- **Compose Compiler**: 1.7.0
 - **Material 3**: 1.2.1
 - **Media3**: 1.4.0
 - **Room**: 2.6.1
+- **DataStore**: 1.1.2
+- **App Startup**: 1.2.0
+- **Navigation Compose**: 2.8.4
 - **Hilt**: 2.51.1
-- **KSP**: 2.2.20-2.0.4
+- **KSP**: 2.2.21-2.0.4
 - **Coil**: 3.3.0
 - **Paging 3**: 3.3.1
 - **Work Manager**: 2.9.0
@@ -150,36 +153,38 @@ When running commands that require network access (gradle sync, dependency downl
 **Performance Requirements:**
 
 - 120Hz smooth scrolling required - use `LazyColumn`/`LazyRow` with key parameters
-- Cold start < 500ms - defer non-critical initialization
+- Optimize for fast cold start - defer non-critical initialization using App Startup
 - Memory under 100MB - use `Bitmap.Config.HARDWARE` for images via Coil
-- Gapless playback < 10ms - use `ConcatenatingMediaSource2` with 90% pre-buffer
+- Gapless playback - use `ConcatenatingMediaSource2` with 90% pre-buffer
 
-**Audio Engine (Media3 1.9.0):**
+**Audio Engine (Media3 1.4.0):**
 
 - Always use `MediaSessionService` for background playback
 - Configure `LoadControl` for large RAM buffer chunks
 - Implement audio focus with ducking and bypass toggle
 - Prefer high-bitrate LDAC for Bluetooth
+- Support all common formats: MP3, AAC, FLAC, ALAC, WAV, OGG, OPUS, M4A, WMA
 - Support 24-bit/192kHz via direct `AudioTrack` routing
-- Use `media3-ui-compose-material3` for Compose UI components
 
-**Database (Room 2.7.2):**
+**Database (Room 2.6.1):**
 
 - Use FTS5 tables for search (sub-10ms queries)
 - Implement pagination with Paging 3 (page size: 50)
 - Sync Room DB with MediaStore using WorkManager + ContentObserver
 - Folder-first view prioritization
 - Use KSP for annotation processing
+- Track entity: id, title, artistId, albumId, folderId, duration, filePath, uri, trackNumber, year
 
-**UI Guidelines (Material 3 1.5.0):**
+**UI Guidelines (Material 3 1.2.1):**
 
 - Use dynamic color tokens from Material You (system theme)
 - Apply GPU-accelerated blurs with `Modifier.graphicsLayer { renderEffect }`
-- Hardware bitmaps for artwork via Coil 3.3.0
+- Hardware bitmaps for artwork via Coil 3.3.0 with high-quality caching
 - Follow Material 3 spacing and typography guidelines
 - Implement edge-to-edge UI (required for Android 16)
+- Persistent mini-player on all screens except Now Playing
 
-**Dependency Injection (Hilt 2.55):**
+**Dependency Injection (Hilt 2.51.1):**
 
 - Use `@HiltViewModel` for ViewModels
 - Use `@AndroidEntryPoint` for Activities, Fragments, and Services
@@ -216,8 +221,17 @@ When running commands that require network access (gradle sync, dependency downl
 
 **Testing:**
 
-- Write unit tests with JUnit 4 and MockK
-- Write Compose UI tests with Compose Testing
-- Write instrumentation tests with Espresso
-- Test Room database with room-testing artifact
+- Write unit tests with JUnit 4 and MockK for Repository layer and ViewModels
+- Write Compose UI tests with Compose Testing for navigation flows and playback controls
+- Write instrumentation tests with Espresso for Media3 playback engine and service lifecycle
+- Test Room database operations and migrations with room-testing artifact
 - Test coroutines with kotlinx-coroutines-test
+- Test DataStore persistence
+- Test playlist export/import (M3U parsing)
+
+**Settings & Initialization:**
+
+- Use DataStore 1.1.2 for type-safe settings persistence
+- Use App Startup 1.2.0 for deferred initialization (DataStore, Room)
+- Never block main thread with DB or I/O operations
+- Lazy initialization of MediaSessionService (only when playback starts)

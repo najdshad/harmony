@@ -95,6 +95,10 @@ dependencies {
 
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
 
+    implementation("androidx.datastore:datastore-preferences:1.1.2")
+    implementation("androidx.startup:startup-runtime:1.2.0")
+    implementation("androidx.navigation:navigation-compose:2.8.4")
+
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     testImplementation("junit:junit:4.13.2")

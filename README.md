@@ -5,23 +5,29 @@ A high-performance Android music player built with Kotlin and Jetpack Compose, d
 ## Features
 
 - **Gapless Playback**: Zero-latency transitions between tracks using Media3 ExoPlayer
-- **High-Resolution Audio**: Support for 24-bit/192kHz FLAC, ALAC, and WAV
+- **High-Resolution Audio**: Support for 24-bit/192kHz and all common formats (MP3, AAC, FLAC, ALAC, WAV, OGG, OPUS, M4A, WMA)
 - **Fast Library Management**: Handles 4,000+ tracks with Room FTS5 search
 - **Material You Design**: Dynamic color integration with system themes
+- **Playlist Support**: Create, edit, delete, export/import (M3U format)
+- **Persistent Mini-Player**: Always-visible bottom bar on all screens
+- **Smart Search**: Albums, artists, and tracks with instant results
 - **Bluetooth Optimization**: LDAC codec support at highest bitrate
-- **Performance**: 120Hz scrolling, <500ms cold start, <100MB memory usage
+- **Performance**: 120Hz scrolling, optimized cold start, <100MB memory usage
 
 ## Tech Stack
 
 - **Language**: Kotlin 2.2.20
 - **UI Framework**: Jetpack Compose (Material 3 1.2.1)
-- **Media Engine**: Jetpack Media3 1.4.0
-- **Database**: Room 2.6.1 with FTS5
-- **Dependency Injection**: Hilt 2.51.1
-- **Async**: Coroutines + Flow
-- **Image Loading**: Coil 3.3.0
-- **Pagination**: Paging 3 3.3.1
-- **Build System**: Gradle 8.13, AGP 8.13.2
+ - **Media Engine**: Jetpack Media3 1.4.0
+ - **Database**: Room 2.6.1 with FTS5
+ - **Settings**: DataStore 1.1.2
+ - **App Startup**: Startup Runtime 1.2.0
+ - **Dependency Injection**: Hilt 2.51.1
+ - **Async**: Coroutines + Flow
+ - **Image Loading**: Coil 3.3.0
+ - **Pagination**: Paging 3 3.3.1
+ - **Navigation**: Navigation Compose 2.8.4
+ - **Build System**: Gradle 8.13, AGP 8.13.2
 
 ## Requirements
 
