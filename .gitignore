@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+*.class
+*.dex
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Gradle - ignore build artifacts but keep gradle files
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Keep build.gradle.kts and settings.gradle.kts
+!build.gradle.kts
+!settings.gradle.kts
+!app/build.gradle.kts
+
+# But ignore generated build outputs
+build/
+!build/outputs/
+!build/generated/
+
+# Local configuration
+local.properties
+
+# Log files
+*.log
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Keystore files (should never be committed)
+*.jks
+*.keystore
+
+# External native build folder
+.externalNativeBuild
+.cxx/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local/temporary files
+*.swp
+*~
+.vscode/
+
+# APK/AAB bundles (build artifacts, never commit)
+*.apk
+*.aab
+
+# Profiling
+*.hprof
+
+# Generated Android files
+captures/
+
+# Test results
+test-results/
+androidTest-results/

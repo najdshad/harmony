@@ -13,19 +13,38 @@ A high-performance Android music player built with Kotlin and Jetpack Compose, d
 
 ## Tech Stack
 
-- **Language**: Kotlin
-- **UI Framework**: Jetpack Compose (Material 3)
-- **Media Engine**: Jetpack Media3 (ExoPlayer)
-- **Database**: Room with FTS5
+- **Language**: Kotlin 2.2.20
+- **UI Framework**: Jetpack Compose (Material 3 1.2.1)
+- **Media Engine**: Jetpack Media3 1.4.0
+- **Database**: Room 2.6.1 with FTS5
+- **Dependency Injection**: Hilt 2.51.1
 - **Async**: Coroutines + Flow
-- **Image Loading**: Coil with hardware bitmaps
-- **Pagination**: Paging 3
+- **Image Loading**: Coil 3.3.0
+- **Pagination**: Paging 3 3.3.1
+- **Build System**: Gradle 8.13, AGP 8.13.2
 
 ## Requirements
 
-- Android SDK 24+
-- Gradle 8.5+
-- JDK 17
+- **minSdk**: 33 (Android 13)
+- **Java**: 17 (auto-detected from system)
+- **Android SDK**: 36 (API 16)
+
+## Development Environment
+
+This project uses the latest stable versions and has been tested to build successfully. The development environment includes:
+
+- **Java 17**: Required for Android development, auto-detected from `/usr/lib/jvm/java-17-openjdk/`
+- **Android SDK 36**: API level 36 (Android 16 Baklava) available at `/home/najdu/android-sdk`
+- **Gradle 8.13**: Build system configured and working
+- **Network proxy**: Configured in `gradle.properties` for dependency downloads
+
+### First-Time Setup
+
+If you're setting up a fresh environment:
+
+1. Ensure Java 17 is installed (Arch Linux: `sudo pacman -S jdk17-openjdk`)
+2. Configure Android SDK path (already set in this project)
+3. Install Android Studio (optional, for IDE development)
 
 ## Building
 
@@ -35,6 +54,9 @@ A high-performance Android music player built with Kotlin and Jetpack Compose, d
 
 # Run all tests
 ./gradlew test
+
+# Run instrumentation tests
+./gradlew connectedAndroidTest
 
 # Run lint checks
 ./gradlew lint
@@ -66,6 +88,8 @@ The app follows MVVM pattern with:
 - **MediaPlaybackService**: Background playback using MediaSessionService
 - **Repository Pattern**: Data access layer with Room + MediaStore sync
 - **Compose UI**: Reactive state management with StateFlow
+- **Hilt**: Dependency injection throughout the app
+- **Paging 3**: Efficient loading of large music libraries
 
 ## License
 

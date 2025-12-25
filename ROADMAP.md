@@ -10,14 +10,22 @@ This roadmap provides a deterministic, step-by-step implementation plan for the 
 
 **Goal:** Establish core infrastructure that all features depend on.
 
-### 0.1 Dependency Injection Setup
-- [ ] Set up Koin or Hilt for dependency injection
-  - Configure application class with DI container
-  - Define modules for services, repositories, viewmodels
-  - Test DI configuration
+### 0.1 Dependency Injection Setup ✅
+- [x] Set up Hilt for dependency injection
+  - [x] Configure application class with DI container
+  - [x] Define modules for services, repositories, viewmodels
+  - [x] Test DI configuration
 - [ ] Create Repository interfaces
   - `TrackRepository`, `AlbumRepository`, `ArtistRepository`, `FolderRepository`
   - Define contracts without implementations
+
+### 0.2 Basic UI Structure ✅
+- [x] Create MainActivity with Compose
+- [x] Create basic placeholder screens
+- [x] Setup Material 3 theming
+- [x] Configure edge-to-edge UI
+- [x] Verify Java 17 toolchain working
+- [x] Confirm successful build generation
 
 ### 0.2 Core Utilities & Error Handling
 - [ ] Create `Result<T>` wrapper for operations that can fail
@@ -147,7 +155,7 @@ This roadmap provides a deterministic, step-by-step implementation plan for the 
   - Filter for supported formats (MP3, FLAC, ALAC, WAV, OGG, M4A)
   - Extract metadata using `MediaMetadataRetriever`
   - Map to Room entities efficiently (batch inserts)
-- [ ] Handle Android 13+ permissions
+- [ ] Handle permissions
   - Request `READ_MEDIA_AUDIO` permission with proper UI flow
   - Handle partial media access gracefully
   - Fallback strategies if access denied
@@ -533,7 +541,7 @@ This roadmap provides a deterministic, step-by-step implementation plan for the 
   - Critical user flows
   - Accessibility checks
 - [ ] Manual testing matrix
-  - Multiple Android versions (API 24-34)
+  - Multiple Android versions (API 33-36)
   - Various screen sizes (phone, tablet, foldable)
   - Large libraries (4,000+ tracks)
   - Bluetooth devices (various codecs)
@@ -597,12 +605,14 @@ This roadmap provides a deterministic, step-by-step implementation plan for the 
 
 ## Dependencies & Prerequisites
 
-- Android Studio Hedgehog (2023.1.1) or later
-- Kotlin 1.9.x
-- Android Gradle Plugin 8.1+
+- Android Studio Otter (2025.2.2) or later
+- Kotlin 2.2.20
+- Android Gradle Plugin 8.13.2
+- Gradle 8.13
 - Minimum SDK: 24 (Android 7.0)
-- Target SDK: 34 (Android 14)
-- Compile SDK: 34
+- Target SDK: 36 (Android 16)
+- Compile SDK: 36 (Android 16)
+- Java 17
 
 ---
 
@@ -638,7 +648,8 @@ This roadmap provides a deterministic, step-by-step implementation plan for the 
 
 ### Notification Compatibility
 - **Risk:** MediaStyle behavior varies across Android versions
-- **Mitigation:** Test on API 24, 28, 30, 33, 34, add version checks where needed
+- **Mitigation:** Test on API 24, 28, 30, 33, 34, 35, 36, add version checks where needed
+- **Edge-to-Edge**: Required for Android 16 (API 36), cannot opt-out
 
 ### Background Playback
 - **Risk:** Service may be killed in background
@@ -663,6 +674,22 @@ Each phase must pass validation before proceeding:
 
 ---
 
+## Technology Stack
+
+- **Kotlin**: 2.2.20
+- **Gradle**: 8.13
+- **Android Gradle Plugin**: 8.13.2
+- **Jetpack Compose**: BOM 2024.10.01
+- **Compose Compiler**: 1.5.8
+- **Material 3**: 1.2.1
+- **Media3**: 1.4.0
+- **Room**: 2.6.1
+- **Hilt**: 2.51.1
+- **KSP**: 2.2.20-2.0.4
+- **Coil**: 3.3.0
+- **Paging 3**: 3.3.1
+- **Work Manager**: 2.9.0
+
 ## Notes
 
 - Follow AGENTS.md for all code style and engineering standards
@@ -674,3 +701,4 @@ Each phase must pass validation before proceeding:
 - Continuous testing: Don't wait until Phase 10 to test core functionality
 - Memory-first approach: Keep 100MB limit in mind throughout development
 - Early performance profiling: Profile as you build, not just at the end
+- All network access uses proxy: http://127.0.0.1:10808 (configured in gradle.properties)
