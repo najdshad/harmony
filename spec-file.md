@@ -1,61 +1,66 @@
-# Technical Specification: harmony Music Player
+---
+
+# Technical Specification: harmony Music Player (Revised)
 
 ## 1. Vision & Core Philosophy
 
-**harmony** is built for the listener who values audio integrity, visual elegance, and instant responsiveness. It treats a 4,000+ track library as a lightweight collection, ensuring the hardware is dedicated to one thing: **reproducing music perfectly.**
+**harmony** is designed for listeners who value audio integrity, visual elegance, and instant responsiveness. It treats massive libraries as lightweight collections, ensuring hardware is dedicated to reproducing music perfectly.
 
-* **Opinionated Defaults:** Gapless playback is mandatory; Audio focus is strict; UI is "flat" for speed.
-* **Performance:** 120Hz scrolling, <500ms cold start, and minimal CPU/Battery footprint.
-* **Aesthetic:** Pure Material 3 with "Material You" dynamic coloring driven by album art.
-
----
-
-## 2. Audio Engine (The Audiophile Core)
-
-The playback engine is built on **Jetpack Media3 (ExoPlayer)**, configured for bit-perfect delivery.
-
-* **Gapless Playback:** * Uses `ConcatenatingMediaSource2` for zero-latency transitions.
-* Pre-buffers the next track when the current track reaches 90% completion.
-
-* **High-Resolution Support:** * Direct `AudioTrack` routing for 24-bit/192kHz FLAC, ALAC, and WAV.
-* Automatic bypass of the Android system mixer (where hardware allows) to prevent resampling.
-
-* **Buffer Management:** * Custom `LoadControl` to keep a larger chunk of the current track in RAM, reducing disk spin-up and battery drain.
+* **Opinionated Defaults:** Gapless playback is mandatory; UI is "flat" for speed.
+* **Performance:** 120Hz scrolling, <500ms cold start, and minimal battery footprint.
+* **Aesthetic:** Pure Material 3 utilizing system-wide **Material You** dynamic coloring.
 
 ---
 
-## 3. Large-Scale Library Management (4,000+ Tracks)
+## 2. Audio Engine (ExoPlayer Foundation)
 
-To handle massive libraries without "jank," harmony uses a reactive data pipeline.
+The engine is built on **Jetpack Media3 (ExoPlayer)**.
+
+### A. Playback & Focus
+
+* **Gapless Playback:** Uses `ConcatenatingMediaSource2` for zero-latency transitions and pre-buffers the next track at 90% completion.
+* **Audio Focus Logic:** * **Ducking:** Automatically lowers volume during notifications.
+* **Focus Bypass:** A user-toggleable option to ignore focus loss, preventing other apps from interrupting the stream.
+
+* **High-Resolution Support:** Direct `AudioTrack` routing for 24-bit/192kHz FLAC, ALAC, and WAV.
+
+### B. Signal Processing
+
+* **10-Band Equalizer:** A high-precision digital EQ integrated into the Media3 processing pipeline.
+* **Buffer Management:** Custom `LoadControl` to keep large chunks in RAM, reducing disk spin-up.
+
+---
+
+## 3. Library & Data Management
+
+Optimized for 4,000+ tracks using a reactive data pipeline.
 
 ### A. Data Architecture
 
-* **Hybrid Media Store:** Uses a **Room Database** to mirror `MediaStore`. Room stores custom metadata (Play counts, Favorites, Audiophile tags) while keeping a fast index of file paths.
-* **Paging 3 Integration:** Songs are loaded in "pages" of 50. This prevents the app from trying to allocate memory for 4,000 objects at once.
-* **Fast-Index Scrolling:** A custom Material 3 scrollbar that shows alphabetical headers (A...Z) for instant jumping through large lists.
+* **Hybrid Media Store:** A **Room Database** mirrors `MediaStore`.
+* **Room FTS5:** Implements Full-Text Search (FTS5) for sub-10ms "search-as-you-type" across the entire library.
+* **Paging 3:** Songs and folders are loaded in blocks of 50 to maintain low memory overhead.
 
-### B. Search Engine
+### B. Navigation & Sync
 
-* **In-Memory Indexing:** A lightweight search index is built on launch, allowing for sub-10ms "search-as-you-type" results.
+* **Folder-First View:** Prioritizes physical file hierarchy over metadata-only views.
+* **File Watcher:** Uses **WorkManager** and `ContentObserver` to detect new files added via PC/file manager and sync them to the Room DB automatically.
+* **Permissions:** Robust handling of `READ_MEDIA_AUDIO` for Android 13+ and partial media access.
 
 ---
 
 ## 4. UI/UX & Visual Identity
 
-The design follows the **Material 3 (M3)** spec, emphasizing depth, motion, and personalization.
+The UI follows the **Material 3 (M3)** spec with a focus on system integration.
 
-### A. Material You & Dynamic Color
+### A. System-Driven Design
 
-* **Content-Based Theming:** The entire UI palette (buttons, backgrounds, sliders) dynamically shifts to match the **dominant color** of the current album art.
-* **Glassmorphism:** The "Now Playing" screen uses a multi-layered approach with a high-quality blurred version of the album art as the base layer.
+* **Material You:** The app uses system-wide dynamic color tokens (set by the user's wallpaper) for the entire UI palette.
+* **Hardware Bitmaps:** Coil uses `Bitmap.Config.HARDWARE` to offload image rendering to the GPU.
 
-### B. High-Efficiency Imagery
+### B. GPU-Accelerated Effects
 
-* **Hardware Bitmaps:** Using **Coil** with `Bitmap.Config.HARDWARE` to offload image rendering to the GPU, keeping the JVM heap clean.
-* **Layered Caching:** 1.  Memory Cache (Active views)
-
-1. Disk Cache (Downsampled thumbnails)
-2. Source (Original high-res art)
+* **Native Glassmorphism:** The "Now Playing" screen uses `Modifier.graphicsLayer { renderEffect = ... }` for GPU-accelerated blurs (Android 12+), ensuring 120Hz smoothness.
 
 ---
 
@@ -64,41 +69,38 @@ The design follows the **Material 3 (M3)** spec, emphasizing depth, motion, and 
 | Component | Technology | Purpose |
 | --- | --- | --- |
 | **Language** | Kotlin | Modern, safe, and expressive. |
-| **UI Framework** | Jetpack Compose | Declarative UI for smooth transitions and M3 support. |
-| **Media Library** | Media3 + ExoPlayer | Standard for modern Android media handling. |
-| **Persistence** | Room DB | Metadata caching and playlist management. |
-| **DI** | Hilt | Dependency injection for clean, testable code. |
-| **Image Loading** | Coil | Fast, lightweight, and hardware-accelerated. |
-| **Async** | Coroutines & Flow | Non-blocking I/O and reactive UI updates. |
+| **UI Framework** | Jetpack Compose | Declarative UI for smooth transitions. |
+| **Media Library** | Media3 + ExoPlayer | Modern Android media handling. |
+| **Persistence** | Room DB + FTS5 | Metadata caching and lightning-fast search. |
+| **Connectivity** | Bluetooth Stack | Optimized for high-bitrate **LDAC** codec. |
+| **Diagnostics** | Manual `.txt` Logging | Localized crash logs for privacy and simplicity. |
+| **Media Control** | MediaSessionService | System and background playback control. |
 
 ---
 
-## 6. Implementation Strategy (Roadmap)
+## 6. Connectivity & System Integration
 
-### Phase 1: The High-Res Foundation
-
-* Configure `MediaSessionService` and `ExoPlayer`.
-* Implement custom `RenderersFactory` for high-bitrate audio.
-* Enable gapless logic and `AudioTrack` optimizations.
-
-### Phase 2: The Data Pipeline
-
-* Build the `MediaStore` synchronizer with **Room**.
-* Implement **Paging 3** to feed the `LazyColumn` in the Library view.
-* Optimize the Fast-Scroll behavior.
-
-### Phase 3: The harmony Visuals
-
-* Build the "Now Playing" screen with M3 Dynamic Color extraction.
-* Implement the "Mini-player" with swipe-to-skip gestures.
-* Apply hardware-accelerated image loading.
+* **LDAC Optimization:** Configured to prefer the highest possible bitrate for Bluetooth LDAC connections.
+* **Bluetooth Listeners:** Implements "Pause on Disconnect" to prevent accidental speaker playback.
+* **No Scrobbling:** External scrobbling (Last.fm, etc.) is explicitly excluded to keep the stack lean.
 
 ---
 
-## 7. Performance Benchmarks (Success Metrics)
+## 7. Implementation Roadmap
+
+* **Phase 1:** Configure `MediaSessionService` and implement the 10-band EQ pipeline.
+* **Phase 2:** Build the Room FTS5 index and the Folder-View navigation using Paging 3.
+* **Phase 3:** Finalize M3 Dynamic Color integration and the GPU-accelerated blur effects.
+
+---
+
+## 8. Performance Benchmarks (Success Metrics)
 
 * **Frame Drops:** Zero drops during rapid scrolling of 4,000+ items.
 * **Gapless Latency:** < 10ms transition between tracks.
-* **Memory Usage:** Stay under 100MB RAM even with high-res artwork displayed.
+* **Memory Usage:** Under 100MB RAM even with hardware-accelerated artwork.
+* **Audio Buffering:** Zero underruns during background-to-foreground transitions.
+* **Battery Efficiency:** < 2% drain per hour of screen-off playback.
+* **Index Speed:** Full library rebuild (4,000 tracks) in < 3 seconds.
 
 ---
