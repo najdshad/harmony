@@ -1,237 +1,85 @@
 # harmony Music Player - Agent Guidelines
 
-## Development Environment
+## Environment & Network
 
-**Confirmed Working Setup:**
-- Java 17 installed at `/usr/lib/jvm/java-17-openjdk/`
-- Android SDK 36 (API 16) available at `/home/najdu/android-sdk`
-- Build system configured and tested successfully
-- APK generation working
-
-**Java Configuration:**
-- Project uses Java 17 toolchain (default for Kotlin 2.2.20)
-- Kotlin compiles to Java 17 bytecode
-- Android runtime (ART) compatible with Java 17
-- No additional configuration needed - Gradle auto-detects Java 17
-
-## Network Configuration
-
-**All network access must use proxy:** `http://127.0.0.1:10808`
-
-When running commands that require network access (gradle sync, dependency downloads, etc.), ensure this proxy is configured.
-
-## Engineering Standards
-
-**Act as a senior software engineer throughout all tasks.** Prioritize writing high-quality, production-ready code with thorough testing, proper error handling, and well-architected solutions. Never take shortcuts that compromise code quality, maintainability, or performance. All implementations must be complete, robust, and follow established best practices.
+**Setup:** Java 17 at `/usr/lib/jvm/java-17-openjdk/`, Android SDK 36 at `/home/najdu/android-sdk`
+**Proxy:** All network access must use `http://127.0.0.1:10808`
 
 ## Build & Test Commands
 
-### Gradle Commands
-
 ```bash
-# Build the project
+# Build & test
 ./gradlew build
-
-# Run all tests
-./gradlew test
-
-# Run specific test class
+./gradlew test                          # All unit tests
 ./gradlew test --tests "com.harmony.player.TestClassName"
-
-# Run specific test method
 ./gradlew test --tests "com.harmony.player.TestClassName.testMethodName"
+./gradlew connectedAndroidTest          # Instrumentation tests
+./gradlew lint                          # Android lint
+./gradlew ktlintCheck                   # Code style
+./gradlew ktlintFormat                  # Auto-format
 
-# Run instrumentation tests (connected to device/emulator)
-./gradlew connectedAndroidTest
-
-# Run lint checks
-./gradlew lint
-
-# Format code with ktlint
-./gradlew ktlintFormat
-
-# Check code style with ktlint
-./gradlew ktlintCheck
-
-# Clean build artifacts
-./gradlew clean
-
-# Build debug APK
+# Build & install
 ./gradlew assembleDebug
-
-# Build release APK
 ./gradlew assembleRelease
-
-# Install debug build on connected device
 ./gradlew installDebug
+./gradlew clean
 ```
 
-## Technology Stack
+## Code Style - Kotlin Basics
 
-**Versions (December 2025):**
+**Imports:** Group as stdlib → AndroidX → third-party → project (alphabetically). Use `*` only for 5+ imports or tests. No unused imports.
 
-- **Kotlin**: 2.2.20
-- **Gradle**: 8.13
-- **Android Gradle Plugin**: 8.13.2
-- **Compile SDK**: 36 (Android 16)
-- **Target SDK**: 36 (Android 16)
-- **Min SDK**: 33 (Android 13)
-- **Compose BOM**: 2024.10.01
-- **Compose Compiler**: 1.7.0
-- **Material 3**: 1.2.1
-- **Media3**: 1.4.0
-- **Room**: 2.6.1
-- **DataStore**: 1.1.2
-- **App Startup**: 1.2.0
-- **Navigation Compose**: 2.8.4
-- **Hilt**: 2.51.1
-- **KSP**: 2.2.21-2.0.4
-- **Coil**: 3.3.0
-- **Paging 3**: 3.3.1
-- **Work Manager**: 2.9.0
+**Formatting:** 4-space indent, 120 char max line, trailing commas in Compose.
+
+**Types:** `val` over `var`, data classes for values, `sealed` for hierarchies. Avoid `!!` - use safe calls `?`. Use `Flow` for streams, `suspend` for coroutines.
+
+**Naming:** Functions: `camelCase` verbs (`playTrack()`, `loadAlbums()`). Variables: `camelCase`. Constants: `UPPER_SNAKE_CASE`. Classes: `PascalCase`. Composables: `PascalCase`. Private backing: `_propertyName`.
+
+**Error Handling:** Use `Result<T>` for fallible ops. Never catch generic `Exception` - catch specific types. Log with Android Log using package/class tags. Show user-friendly messages, no stack traces. Wrap Media3 ops in try/catch.
+
+**Architecture:** MVVM with ViewModels, Repository pattern, Hilt DI. State: `remember{}` in Composables, `StateFlow` in ViewModels. Single source of truth. Keep composables pure - no business logic in UI.
 
 ## Code Style Guidelines
 
-### Kotlin & Jetpack Compose
+### Compose-Specific
 
-**Imports:**
+- Prefer `Modifier` chaining at end of parameters
+- Use `remember{ }` for expensive calculations, `derivedStateOf{ }` for computed state
+- Extract child composables to avoid deep nesting
+- `LaunchedEffect` for side effects on composition, `SideEffect` for non-suspend
 
-- Group imports: standard library, Android/AndroidX, third-party, project (alphabetically within groups)
-- Use `*` imports only for test files or when importing 5+ items from same package
-- No unused imports - run `./gradlew ktlintCheck` to verify
+## Key Libraries & Standards
 
-**Formatting:**
+**Versions:** Kotlin 2.2.21, Gradle 8.13, AGP 8.13.2, Min SDK 33, Target SDK 36
 
-- Use 4-space indentation (Kotlin default)
-- Max line length: 120 characters
-- Use trailing commas in Compose functions for better diffs
-- Prefer explicit `@Composable` annotations
+**Audio (Media3 1.4.0):** Use `MediaSessionService` for background playback. Configure `LoadControl` for large buffers. Audio focus with ducking/bypass. Support MP3, AAC, FLAC, ALAC, WAV, OGG, OPUS, M4A, WMA, 24-bit/192kHz. Prefer LDAC for Bluetooth.
 
-**Types:**
+**Database (Room 2.6.1):** FTS5 tables for search (<10ms). Pagination with Paging 3 (page size 50). Sync with MediaStore via WorkManager + ContentObserver. KSP for annotation processing.
 
-- Use `val` for immutable references, `var` only when necessary
-- Prefer data classes for value objects
-- Use `sealed` classes/interfaces for limited type hierarchies
-- Avoid `!!` operator - use safe calls (`?.`) and explicit null checks
-- Use `Flow` for async streams, `suspend` functions for coroutines
+**UI (Material 3 1.2.1, Compose):** Dynamic color from Material You. GPU blurs with `Modifier.graphicsLayer { renderEffect }`. Hardware bitmaps via Coil 3.3.0. Edge-to-edge UI required. Persistent mini-player except Now Playing.
 
-**Naming Conventions:**
+**DI (Hilt 2.55):** `@HiltViewModel` for ViewModels, `@AndroidEntryPoint` for Activities/Fragments/Services, `@Inject` for constructor injection. Use `@Module` + `@InstallIn` for dependency modules.
 
-- Functions/methods: `camelCase` with verbs (`playTrack()`, `loadAlbums()`)
-- Variables: `camelCase`
-- Constants: `UPPER_SNAKE_CASE` at top level or in companion objects
-- Classes: `PascalCase`
-- Composables: `PascalCase` with descriptive names (`NowPlayingScreen`, `TrackItem`)
-- Private properties: `camelCase` with underscore prefix if backing property (`_currentTrack`)
+**Bluetooth:** "Pause on Disconnect" listener, LDAC at highest bitrate, graceful state handling. Request `BLUETOOTH_CONNECT` at runtime.
 
-**Error Handling:**
+**Permissions:** `READ_MEDIA_AUDIO` (Android 13+), `POST_NOTIFICATIONS` (Android 13+), `BLUETOOTH_CONNECT`. Handle partial access gracefully.
 
-- Use `Result<T>` for operations that can fail
-- Never catch generic `Exception` - catch specific exceptions
-- Log errors with Android Log using package/class-based tags
-- Show user-friendly error messages in UI (no stack traces)
-- Use `try/catch` around Media3 operations and handle gracefully
+**Settings/Init:** DataStore 1.1.2 for persistence, App Startup 1.2.0 for deferred init (DataStore, Room). Never block main thread with DB/I/O. Lazy MediaSessionService init.
 
-**Architecture Patterns:**
+**Logging:** Manual `.txt` logging (no cloud). Include context: track info, state, action. Keep localized.
 
-- Follow MVVM pattern with ViewModels
-- Use Repository pattern for data access
-- Use Hilt for dependency injection
-- State management with `remember{ }` in Composables or `StateFlow` in ViewModels
-- Single source of truth for UI state
-- Keep composables pure - no business logic in UI layer
+**Build:** Namespace in build.gradle.kts, R8 full mode for release. ProGuard rules for Media3/Room/Hilt.
 
-**Compose-Specific:**
+## Testing
 
-- Prefer `Modifier` chaining at the end of parameters
-- Use `remember{ }` for expensive calculations
-- Use `derivedStateOf{ }` for computed state
-- Avoid deep nesting - extract child composables
-- Use `LaunchedEffect` for side effects on composition
-- Use `SideEffect` for non-suspend side effects
+Unit: JUnit 4 + MockK for Repository/ViewModel. Coroutines with kotlinx-coroutines-test. Room DB ops with room-testing artifact.
+UI: Compose Testing for navigation/playback.
+Instrumentation: Espresso for Media3 playback/service lifecycle.
+Test DataStore persistence and M3U playlist parsing.
 
-**Performance Requirements:**
+## Performance Requirements
 
-- 120Hz smooth scrolling required - use `LazyColumn`/`LazyRow` with key parameters
-- Optimize for fast cold start - defer non-critical initialization using App Startup
-- Memory under 100MB - use `Bitmap.Config.HARDWARE` for images via Coil
-- Gapless playback - use `ConcatenatingMediaSource2` with 90% pre-buffer
-
-**Audio Engine (Media3 1.4.0):**
-
-- Always use `MediaSessionService` for background playback
-- Configure `LoadControl` for large RAM buffer chunks
-- Implement audio focus with ducking and bypass toggle
-- Prefer high-bitrate LDAC for Bluetooth
-- Support all common formats: MP3, AAC, FLAC, ALAC, WAV, OGG, OPUS, M4A, WMA
-- Support 24-bit/192kHz via direct `AudioTrack` routing
-
-**Database (Room 2.6.1):**
-
-- Use FTS5 tables for search (sub-10ms queries)
-- Implement pagination with Paging 3 (page size: 50)
-- Sync Room DB with MediaStore using WorkManager + ContentObserver
-- Folder-first view prioritization
-- Use KSP for annotation processing
-- Track entity: id, title, artistId, albumId, folderId, duration, filePath, uri, trackNumber, year
-
-**UI Guidelines (Material 3 1.2.1):**
-
-- Use dynamic color tokens from Material You (system theme)
-- Apply GPU-accelerated blurs with `Modifier.graphicsLayer { renderEffect }`
-- Hardware bitmaps for artwork via Coil 3.3.0 with high-quality caching
-- Follow Material 3 spacing and typography guidelines
-- Implement edge-to-edge UI (required for Android 16)
-- Persistent mini-player on all screens except Now Playing
-
-**Dependency Injection (Hilt 2.51.1):**
-
-- Use `@HiltViewModel` for ViewModels
-- Use `@AndroidEntryPoint` for Activities, Fragments, and Services
-- Use `@Inject` for constructor injection
-- Use `@Module` and `@InstallIn` for dependency modules
-- Use Hilt Worker factory for WorkManager
-
-**Bluetooth:**
-
-- Implement "Pause on Disconnect" listener
-- Prefer LDAC codec at highest bitrate
-- Handle Bluetooth state changes gracefully
-- Request `BLUETOOTH_CONNECT` permission at runtime
-
-**Logging:**
-
-- Use manual `.txt` logging for diagnostics (no cloud crash reporting)
-- Include context: track info, state, action being performed
-- Keep logs localized for privacy
-
-**Permissions:**
-
-- Handle `READ_MEDIA_AUDIO` for Android 13+
-- Gracefully handle partial media access
-- Request permissions at appropriate UX moments
-- Handle `POST_NOTIFICATIONS` for Android 13+
-
-**Build Configuration:**
-
-- Use namespace in build.gradle.kts instead of manifest package
-- Enable R8 full mode for release builds
-- Configure ProGuard rules for Media3, Room, and Hilt
-- Use buildConfigField for different configurations
-
-**Testing:**
-
-- Write unit tests with JUnit 4 and MockK for Repository layer and ViewModels
-- Write Compose UI tests with Compose Testing for navigation flows and playback controls
-- Write instrumentation tests with Espresso for Media3 playback engine and service lifecycle
-- Test Room database operations and migrations with room-testing artifact
-- Test coroutines with kotlinx-coroutines-test
-- Test DataStore persistence
-- Test playlist export/import (M3U parsing)
-
-**Settings & Initialization:**
-
-- Use DataStore 1.1.2 for type-safe settings persistence
-- Use App Startup 1.2.0 for deferred initialization (DataStore, Room)
-- Never block main thread with DB or I/O operations
-- Lazy initialization of MediaSessionService (only when playback starts)
+- 120Hz smooth scrolling - `LazyColumn`/`LazyRow` with keys
+- Fast cold start - defer non-critical init with App Startup
+- Memory under 100MB - `Bitmap.Config.HARDWARE` images via Coil
+- Gapless playback - `ConcatenatingMediaSource2` with 90% pre-buffer
