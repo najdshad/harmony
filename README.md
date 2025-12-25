@@ -5,18 +5,18 @@ A high-performance Android music player built with Kotlin and Jetpack Compose, d
 ## Features
 
 - **Gapless Playback**: Zero-latency transitions between tracks using Media3 ExoPlayer
-- **High-Resolution Audio**: Support for 24-bit/192kHz and all common formats (MP3, AAC, FLAC, ALAC, WAV, OGG, OPUS, M4A, WMA)
-- **Fast Library Management**: Handles 4,000+ tracks with Room FTS5 search
+- **Wide Audio Format Support**: All common formats (MP3, AAC, FLAC, ALAC, WAV, OGG, OPUS, M4A, WMA)
+- **Fast Library Management**: Handles 10k+ tracks with Room FTS5 search
 - **Material You Design**: Dynamic color integration with system themes
 - **Playlist Support**: Create, edit, delete, export/import (M3U format)
 - **Persistent Mini-Player**: Always-visible bottom bar on all screens
 - **Smart Search**: Albums, artists, and tracks with instant results
-- **Bluetooth Optimization**: LDAC codec support at highest bitrate
-- **Performance**: 120Hz scrolling, optimized cold start, <100MB memory usage
+- **Bluetooth Pause**: Automatically pauses on disconnect
+- **Performance**: Smooth scrolling, optimized cold start, efficient memory usage
 
 ## Tech Stack
 
-- **Language**: Kotlin 2.2.20
+- **Language**: Kotlin 2.1.0
 - **UI Framework**: Jetpack Compose (Material 3 1.2.1)
  - **Media Engine**: Jetpack Media3 1.4.0
  - **Database**: Room 2.6.1 with FTS5
@@ -25,22 +25,22 @@ A high-performance Android music player built with Kotlin and Jetpack Compose, d
  - **Dependency Injection**: Hilt 2.51.1
  - **Async**: Coroutines + Flow
  - **Image Loading**: Coil 3.3.0
- - **Pagination**: Paging 3 3.3.1
+ - **Background Sync**: WorkManager 2.9.0
  - **Navigation**: Navigation Compose 2.8.4
  - **Build System**: Gradle 8.13, AGP 8.13.2
 
 ## Requirements
 
 - **minSdk**: 33 (Android 13)
+- **targetSdk**: 35 (Android 15)
 - **Java**: 17 (auto-detected from system)
-- **Android SDK**: 36 (API 16)
 
 ## Development Environment
 
-This project uses the latest stable versions and has been tested to build successfully. The development environment includes:
+This project uses stable versions and has been tested to build successfully. The development environment includes:
 
 - **Java 17**: Required for Android development, auto-detected from `/usr/lib/jvm/java-17-openjdk/`
-- **Android SDK 36**: API level 36 (Android 16 Baklava) available at `/home/najdu/android-sdk`
+- **Android SDK**: API level 35 (Android 15) available at `/home/najdu/android-sdk`
 - **Gradle 8.13**: Build system configured and working
 - **Network proxy**: Configured in `gradle.properties` for dependency downloads
 
@@ -55,7 +55,7 @@ If you're setting up a fresh environment:
 ## Building
 
 ```bash
-# Build the project
+# Build project
 ./gradlew build
 
 # Run all tests
@@ -66,9 +66,6 @@ If you're setting up a fresh environment:
 
 # Run lint checks
 ./gradlew lint
-
-# Format code
-./gradlew ktlintFormat
 
 # Clean build artifacts
 ./gradlew clean
@@ -94,8 +91,8 @@ The app follows MVVM pattern with:
 - **MediaPlaybackService**: Background playback using MediaSessionService
 - **Repository Pattern**: Data access layer with Room + MediaStore sync
 - **Compose UI**: Reactive state management with StateFlow
-- **Hilt**: Dependency injection throughout the app
-- **Paging 3**: Efficient loading of large music libraries
+- **Hilt**: Dependency injection throughout app
+- **LazyColumn**: Efficient loading of large music libraries with keys
 
 ## License
 

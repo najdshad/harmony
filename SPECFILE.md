@@ -16,7 +16,7 @@
 
 | Component | Technology | Version | Purpose |
 | --- | --- | --- | --- |
-| **Language** | Kotlin | 2.2.20 | Modern, safe, and expressive |
+| **Language** | Kotlin | 2.1.0 | Modern, safe, and expressive |
 | **UI Framework** | Jetpack Compose | BOM 2024.10.01 | Declarative UI for smooth transitions |
 | **Material 3** | Compose Material3 | 1.2.1 | Material Design 3 components |
 | **Media Library** | Media3 + ExoPlayer | 1.4.0 | Modern Android media handling |
@@ -26,12 +26,11 @@
 | **App Startup** | Startup Runtime | 1.2.0 | Efficient initialization |
 | **Coroutines** | kotlinx.coroutines | 1.8.0 | Asynchronous programming |
 | **Image Loading** | Coil | 3.3.0 | Async image loading with hardware bitmaps |
-
 | **Work Manager** | androidx.work | 2.9.0 | Background task scheduling |
 | **Navigation** | Navigation Compose | 2.8.4 | Screen navigation |
 | **Build System** | Gradle | 8.13 | Build automation |
 | **AGP** | Android Gradle Plugin | 8.13.2 | Android-specific Gradle tasks |
-| **KSP** | Kotlin Symbol Processing | 2.2.20-2.0.4 | Annotation processing |
+| **KSP** | Kotlin Symbol Processing | 2.1.0-1.0.29 | Annotation processing |
 
 ---
 
@@ -40,8 +39,8 @@
 | Configuration | Value |
 | --- | --- |
 | **minSdk** | 33 (Android 13 Tiramisu) |
-| **targetSdk** | 36 (Android 16 Baklava) |
-| **compileSdk** | 36 (Android 16 Baklava) |
+| **targetSdk** | 35 (Android 15) |
+| **compileSdk** | 35 (Android 15) |
 | **JVM Target** | Java 17 |
 | **Namespace** | com.harmony.player |
 
