@@ -26,7 +26,7 @@
 | **App Startup** | Startup Runtime | 1.2.0 | Efficient initialization |
 | **Coroutines** | kotlinx.coroutines | 1.8.0 | Asynchronous programming |
 | **Image Loading** | Coil | 3.3.0 | Async image loading with hardware bitmaps |
-| **Pagination** | Paging 3 | 3.3.1 | Efficient list loading |
+
 | **Work Manager** | androidx.work | 2.9.0 | Background task scheduling |
 | **Navigation** | Navigation Compose | 2.8.4 | Screen navigation |
 | **Build System** | Gradle | 8.13 | Build automation |
@@ -54,35 +54,25 @@ The engine is built on **Jetpack Media3 (ExoPlayer) 1.4.0**.
 ### A. Playback & Focus
 
 * **Gapless Playback:** Uses `ConcatenatingMediaSource2` for zero-latency transitions and pre-buffers the next track at 90% completion.
-* **Audio Focus Logic:**
-  - **Ducking:** Automatically lowers volume during notifications.
-  - **Focus Bypass:** A user-toggleable option to ignore focus loss, preventing other apps from interrupting the stream.
-* **High-Resolution Support:** Direct `AudioTrack` routing for 24-bit/192kHz FLAC, ALAC, and WAV.
+* **Audio Focus Logic:** Automatically lowers volume during notifications (ducking).
 * **Supported Formats:** All common audio formats - MP3, AAC, FLAC, ALAC, WAV, OGG, OPUS, M4A, WMA
-* **Bluetooth Audio:** Always use highest available quality codec (prefer LDAC at max bitrate)
-
-### B. Signal Processing
-
-* **10-Band Equalizer:** A high-precision digital EQ integrated into the Media3 processing pipeline.
-* **Buffer Management:** Custom `LoadControl` to keep large chunks in RAM, reducing disk spin-up.
+* **Bluetooth Audio:** Pause on disconnect when audio is playing.
 * **MediaSessionService:** Background playback with Media3 session service integration.
 
 ---
 
 ## 5. Library & Data Management
 
-Optimized for 4,000+ tracks using a reactive data pipeline.
+Optimized for 10k+ tracks using a reactive data pipeline.
 
 ### A. Data Architecture
 
-* **Hybrid Media Store:** A **Room Database 2.6.1** mirrors `MediaStore`.
+* **Room Database 2.6.1:** Mirrors MediaStore for fast metadata access.
 * **Room FTS5:** Implements Full-Text Search (FTS5) for sub-10ms "search-as-you-type" across the entire library.
-* **Paging 3:** Songs and folders are loaded in blocks of 50 to maintain low memory overhead.
-* **Queue Storage:** Playback queue persisted in Room database with metadata tracking.
+* **Queue Storage:** Playback queue persisted in Room database.
 
 ### B. Navigation & Sync
 
-* **Folder-First View:** Prioritizes physical file hierarchy over metadata-only views.
 * **File Watcher:** Uses **WorkManager 2.9.0** and `ContentObserver` to detect new files added via PC/file manager and sync them to the Room DB automatically.
 * **Permissions:** Robust handling of `READ_MEDIA_AUDIO` for Android 13+ and partial media access.
 
@@ -98,14 +88,13 @@ The UI follows the **Material 3 (M3) 1.2.1** spec with a focus on system integra
 * **Hardware Bitmaps:** Coil uses `Bitmap.Config.HARDWARE` to offload image rendering to the GPU.
 * **High-Quality Caching:** Coil disk cache with aggressive caching strategy for album artwork.
 
-### B. GPU-Accelerated Effects
+### B. Edge-to-Edge
 
-* **Native Glassmorphism:** The "Now Playing" screen uses `Modifier.graphicsLayer { renderEffect = ... }` for GPU-accelerated blurs (Android 12+), ensuring 120Hz smoothness.
 * **Edge-to-Edge:** Full edge-to-edge implementation as required by Android 16.
 
 ### C. Mini-Player
 
-* **Persistent Bottom Bar:** Mini-player visible on all screens except Now Playing
+* **Persistent Bottom Bar:** Mini-player visible on all screens including Now Playing
 * **Now Playing Behavior:** Now Playing screen collapses into the mini-player when navigating away
 * **Mini-Player Actions:** Play/pause, skip, expand to full Now Playing screen
 
@@ -113,7 +102,6 @@ The UI follows the **Material 3 (M3) 1.2.1** spec with a focus on system integra
 
 ## 7. Connectivity & System Integration
 
-* **LDAC Optimization:** Configured to prefer the highest possible bitrate for Bluetooth LDAC connections.
 * **Bluetooth Listeners:** Implements "Pause on Disconnect" to prevent accidental speaker playback.
 * **No Scrobbling:** External scrobbling (Last.fm, etc.) is explicitly excluded to keep the stack lean.
 
@@ -151,8 +139,7 @@ The UI follows the **Material 3 (M3) 1.2.1** spec with a focus on system integra
 
 ### A. Queue Management
 
-* **Queue Persistence:** Queue state and metadata saved to Room database
-* **Queue Metadata Tracking:** Store source information (album, playlist, folder) for navigation back
+* **Queue Persistence:** Queue state saved to Room database
 * **Queue Manipulation:** Drag-and-drop reordering, remove from queue, add to queue
 * **Current Position Tracking:** Seekable timeline with time display
 * **Queue Visibility:** Full queue list view with ability to jump to tracks
@@ -161,7 +148,7 @@ The UI follows the **Material 3 (M3) 1.2.1** spec with a focus on system integra
 
 * **Shuffle Mode:** Randomize next track selection
 * **Repeat Modes:** Off, All (loop entire queue), One (loop current track)
-* **Play All Album:** Play all tracks from album starting at selected track, store album as queue source
+* **Play All Album:** Play all tracks from album starting at selected track
 * **Play Single Track:** Play selected track then stop
 
 ---
@@ -196,13 +183,12 @@ Library Screen (Root) [with Mini-Player]
 │       └── [Play All] → Now Playing Screen
 ├── Artist Detail Screen
 │   └── Albums List → Album Detail → Track List
-├── Folder View Screen
 ├── Search Screen
 ├── Playlists Screen
 │   └── Playlist Detail Screen
 └── Settings Screen
 
-Now Playing Screen (Modal/Bottom Sheet) [No Mini-Player - collapses to it]
+Now Playing Screen (Modal/Bottom Sheet) [with Mini-Player - collapses to it]
 ```
 
 ### B. Navigation Behavior
@@ -211,7 +197,6 @@ Now Playing Screen (Modal/Bottom Sheet) [No Mini-Player - collapses to it]
 * **Playback State:** Persists across navigation (doesn't reset when navigating)
 * **Now Playing Access:** Persistent mini-player on all screens, expands to full screen
 * **Album → Now Playing:** Click track to play, "Play All" to queue entire album
-* **Queue Source Navigation:** Can navigate back to queue source (album/playlist) from queue view
 
 ---
 
@@ -222,15 +207,15 @@ Now Playing Screen (Modal/Bottom Sheet) [No Mini-Player - collapses to it]
 * **Three Sections:** Albums, Artists, Tracks displayed in separate tabs/sections
 * **Real-Time Results:** FTS5 provides instant search-as-you-type
 * **Result Actions:**
-  - Album click → Navigate to Album Detail Screen
-  - Artist click → Navigate to Artist Detail Screen
-  - Track click → Play track immediately
+  * Album click → Navigate to Album Detail Screen
+  * Artist click → Navigate to Artist Detail Screen
+  * Track click → Play track immediately
 
 ### B. Search Behavior
 
 * No loading UI needed (FTS5 is <10ms)
 * Highlight matched text in results
-- Empty state with "No results found" message
+* Empty state with "No results found" message
 
 ---
 
@@ -255,19 +240,7 @@ Now Playing Screen (Modal/Bottom Sheet) [No Mini-Player - collapses to it]
 
 ## 15. Settings Structure
 
-### A. Audio Settings
-
-* **Gapless Playback:** Toggle (default: enabled)
-* **Audio Focus Bypass:** Toggle (default: disabled)
-* **Equalizer:** 10-band EQ presets + custom
-* **High-Resolution Audio:** Toggle (default: enabled)
-
-### B. Display Settings
-
-* **Theme:** Follow system only (Material You dynamic color)
-* **Now Playing Animation:** Toggle for blur effects (default: enabled)
-
-### C. Data Management
+### A. Data Management
 
 * **Rescan Library:** Manual trigger to rebuild database
 * **Clear Cache:** Clear image cache
@@ -332,20 +305,20 @@ Empty Search Results:
 ### A. Initialization Order
 
 1. **Application.onCreate() [Immediate, Main Thread]**
-   - Hilt initializes automatically
+   * Hilt initializes automatically
 
 2. **App Startup ContentProvider [Early, Background]**
-   - DataStore.initialize() (async, non-blocking)
-   - Room database.build() (async, creates tables)
+   * DataStore.initialize() (async, non-blocking)
+   * Room database.build() (async, creates tables)
 
 3. **First Screen Composition [When needed]**
-   - ViewModel initializes repository
-   - Repository queries Room (first query creates connection)
+   * ViewModel initializes repository
+   * Repository queries Room (first query creates connection)
 
 4. **Playback Trigger [On user action]**
-   - Start MediaSessionService
-   - Load queue from Room
-   - Start playback
+   * Start MediaSessionService
+   * Load queue from Room
+   * Start playback
 
 ### B. Key Principles
 
@@ -366,10 +339,10 @@ Empty Search Results:
 ### B. Runtime (Production)
 
 * **Manual log.txt** (as per AGENTS.md):
-  - Cold start timestamp
-  - Playback latency logs
-  - Memory warnings (OOM, etc.)
-  - Error logs with context
+  * Cold start timestamp
+  * Playback latency logs
+  * Memory warnings (OOM, etc.)
+  * Error logs with context
 
 ### C. What NOT to Do
 
@@ -433,8 +406,8 @@ Empty Search Results:
   * Setup App Startup for DataStore and Room initialization
 
 * **Phase 1: Data Layer**
-  * Define Room entities (Track, Album, Artist, Folder, Playlist, PlaybackQueue)
-  * Track entity: id, title, artistId, albumId, folderId, duration, filePath, uri, trackNumber, year
+  * Define Room entities (Track, Album, Artist, Playlist, PlaybackQueue)
+  * Track entity: id, title, artistId, albumId, duration, filePath, uri, trackNumber, year
   * Create DAOs with FTS5 support
   * Setup Room database with proper migrations
   * Implement repositories
@@ -442,42 +415,36 @@ Empty Search Results:
 * **Phase 2: Playback Engine**
   * Configure MediaSessionService
   * Implement MediaController bridge
-  * Add queue management with Room persistence and metadata tracking
+  * Add queue management with Room persistence
   * Implement shuffle/repeat modes
   * Add MediaStyle notification
+  * Implement Bluetooth pause on disconnect
 
 * **Phase 3: UI Foundation**
-  * Setup Compose Navigation with mini-player
+  * Setup Compose Navigation with persistent mini-player
   * Create Material 3 theme with dynamic color
   * Configure Coil for hardware bitmaps with high-quality caching
-  * Build basic screens (Library, Album Detail, Artist Detail)
+  * Build basic screens (Library, Album Detail, Artist Detail, Playlists)
   * Implement empty states and loading states
 
 * **Phase 4: Advanced Features**
-  * Implement 10-band EQ with Media3
-  * Add GPU-accelerated blur effects
   * Build playlist management system (create, edit, delete, export/import M3U)
   * Setup WorkManager for background sync
-  * Implement persistent mini-player with Now Playing collapse behavior
+  * Add search with FTS5 integration (3 sections: albums, artists, tracks)
+  * Implement queue management UI
 
 * **Phase 5: Polish**
-  * Add search with FTS5 integration (3 sections: albums, artists, tracks)
-  * Implement folder-first navigation
   * Write unit tests, integration tests, and UI tests
-  * Performance optimization and code review
+  * Performance validation
 
 ---
 
 ## 22. Performance Benchmarks (Guidelines)
 
 * **Goal:** Write optimized code, track patterns, don't obsess over exact numbers
-* **Frame Drops:** Target zero drops during rapid scrolling of 4,000+ items
-* **Gapless Latency:** Target < 10ms transition between tracks
-* **Memory Usage:** Target under 100MB RAM even with hardware-accelerated artwork
-* **Audio Buffering:** Target zero underruns during background-to-foreground transitions
-* **Battery Efficiency:** Target < 2% drain per hour of screen-off playback
-* **Index Speed:** Target full library rebuild (4,000 tracks) in < 3 seconds
-* **Cold Start:** Target launch to playback-ready state as fast as possible
+* **Frame Drops:** Target smooth scrolling of 10k+ items with LazyColumn keys
+* **Memory Usage:** Keep memory reasonable with Coil hardware bitmap caching
+* **Cold Start:** Fast app launch with deferred initialization
 
 ---
 
@@ -491,12 +458,3 @@ Empty Search Results:
 * **POST_NOTIFICATIONS** (Android 13+): Show playback notification
 
 ---
-
-## 24. Network Configuration
-
-All Gradle operations use proxy: `http://127.0.0.1:10808`
-
-This is configured in `gradle.properties` for dependency downloads and sync operations.
-
----
-
